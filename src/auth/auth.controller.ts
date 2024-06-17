@@ -2,6 +2,7 @@ import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { AuthMessages } from 'src/common/enums/messages-tcp.enum';
 import { AuthService } from './auth.service';
+import { LoginUserDto } from './dto/login-user.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
 
 @Controller()
@@ -14,10 +15,8 @@ export class AuthController {
   }
 
   @MessagePattern(AuthMessages.Login)
-  loginUser() {
-    return {
-      message: 'User logged in',
-    };
+  loginUser(@Payload() loginUserDto: LoginUserDto) {
+    return this.authService.loginUser(loginUserDto);
   }
 
   @MessagePattern(AuthMessages.Verify)
