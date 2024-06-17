@@ -4,18 +4,27 @@ import {
   Logger,
   OnModuleInit,
 } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { RpcException } from '@nestjs/microservices';
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { LoginUserDto } from './dto/login-user.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
+import { JwtPayload } from './interfaces/jwt-payload.interface';
+
 @Injectable()
 export class AuthService extends PrismaClient implements OnModuleInit {
   private readonly logger = new Logger(AuthService.name);
-
+  constructor(private jwtService: JwtService) {
+    super();
+  }
   async onModuleInit() {
     await this.$connect();
     this.logger.log('Connected to the database');
+  }
+
+  async signJwtToken(payload: JwtPayload) {
+    return this.jwtService.sign(payload);
   }
 
   async registerUser(registerUserDto: RegisterUserDto) {
@@ -37,7 +46,12 @@ export class AuthService extends PrismaClient implements OnModuleInit {
       },
     });
 
-    return user;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: __, ...rest } = user;
+    return {
+      user: rest,
+      token: await this.signJwtToken({ ...rest }),
+    };
   }
 
   async loginUser(loginUserDto: LoginUserDto) {
@@ -59,6 +73,11 @@ export class AuthService extends PrismaClient implements OnModuleInit {
       throw new RpcException(new BadRequestException('Invalid credentials'));
     }
 
-    return user;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: __, ...rest } = user;
+    return {
+      user: rest,
+      token: await this.signJwtToken({ ...rest }),
+    };
   }
 }
