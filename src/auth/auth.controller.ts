@@ -20,9 +20,7 @@ export class AuthController {
   }
 
   @MessagePattern(AuthMessages.Verify)
-  vaerifyToken() {
-    return {
-      message: 'Token verified',
-    };
+  verifyToken(@Payload() token: string) {
+    return this.authService.verifyToken(token);
   }
 }
